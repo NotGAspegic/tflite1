@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tflite-deployment
+  labels:
+    app: tflite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tflite
+  template:
+    metadata:
+      labels:
+        app: tflite
+    spec:
+      containers:
+      - name: tflite-container
+        image: prismoo/tfliteweb
+        ports:
+        - containerPort: 80

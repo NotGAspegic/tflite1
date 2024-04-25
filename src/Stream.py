@@ -14,17 +14,32 @@ else:
 
 class VideoStream:
     """Camera object that controls video streaming from the Picamera"""
-    def __init__(self,resolution=(1280,720),framerate=30):
-        # Initialize the PiCamera and the camera image stream
-        self.stream = cv2.VideoCapture(1)
-        ret = self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
-        ret = self.stream.set(3,resolution[0])
-        ret = self.stream.set(4,resolution[1])
-            
+    def __init__(self, resolution=(1280, 720), framerate=30):
+        # Initialize camera index and maximum attempts
+        self.camera_index = 0
+        self.max_attempts = 5
+        
+        # Try different camera indexes until one works
+        while self.camera_index < self.max_attempts:
+            self.stream = cv2.VideoCapture(self.camera_index)
+            if self.stream.isOpened():
+                print(f"Using camera index {self.camera_index}")
+                break  # Exit the loop if the camera is opened successfully
+            else:
+                print(f"Failed to open camera index {self.camera_index}")
+                self.camera_index += 1  # Try the next camera index
+        
+        if self.camera_index == self.max_attempts:
+            print("Failed to open any camera.")
+        else:
+            ret = self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+            ret = self.stream.set(3, resolution[0])
+            ret = self.stream.set(4, resolution[1])
+
         # Read first frame from the stream
         (self.grabbed, self.frame) = self.stream.read()
 
-	# Variable to control when the camera is stopped
+        # Variable to control when the camera is stopped
         self.stopped = False
 
     def start(self):
@@ -68,10 +83,10 @@ app=Flask(__name__)
 CWD_PATH = os.getcwd()
 
 # Path to .tflite file, which contains the model that is used for object detection
-PATH_TO_CKPT = os.path.join(CWD_PATH,MODEL_NAME,GRAPH_NAME)
+PATH_TO_CKPT = os.path.join(CWD_PATH,'src',MODEL_NAME,GRAPH_NAME)
 
 # Path to label map file
-PATH_TO_LABELS = os.path.join(CWD_PATH,MODEL_NAME,LABELMAP_NAME)
+PATH_TO_LABELS = os.path.join(CWD_PATH,'src',MODEL_NAME,LABELMAP_NAME)
 
 # Load the label map
 with open(PATH_TO_LABELS, 'r') as f:
